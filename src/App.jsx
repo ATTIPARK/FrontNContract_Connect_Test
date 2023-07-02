@@ -3,6 +3,7 @@ import Web3 from "web3";
 import {ethers} from "ethers";
 import tokenabi from './abi_token.json';
 import nftabi from './abi_nft.json';
+import axios from "axios";
 
 function App() {
   const [account, setAccount] = useState("");
@@ -13,6 +14,24 @@ function App() {
   const [finalB, setFinalB] = useState("");
   const [ratio, setRatio] = useState("");
   const [tokenURI, setTokenURI] = useState("");
+  const [coinPrice, setCoinPrice] = useState();
+
+  const getCoinPrice = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.upbit.com/v1/ticker?markets=KRW-BTC,%20KRW-ETH,%20KRW-MATIC"
+      );
+
+      // setCoinPrice([
+      //   { symbol: "MATIC", price: response.data[2].trade_price }
+      // ]);
+
+      console.log(response.data[2]);
+      setCoinPrice(response.data[2].trade_price);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const web3 = new Web3(window.ethereum);
   // const web3_2 = new Web3("https://goerli.infura.io/v3/13bee00ed8d04b969173e4691bfe996c");
@@ -202,6 +221,15 @@ function App() {
             <button className="ml-4" type="submit">해당nft의 토큰uri 보기</button>
             <div>{tokenURI}</div>
           </form>
+          <div>
+            <button onClick={getCoinPrice}>환율보기</button>
+            {coinPrice && (
+            <div className="flex text-gray-400 text-sm">
+              1 Matic : {coinPrice} K₩
+              1 K₩ : {1/(coinPrice)} Matic
+            </div>
+            )}
+          </div>
         </div>
       ) : (
         <button onClick={onClickAccount} className="btn-style">
