@@ -26,18 +26,17 @@ function App() {
       //   { symbol: "MATIC", price: response.data[2].trade_price }
       // ]);
 
-      console.log(response.data[2]);
-      setCoinPrice(response.data[2].trade_price);
+      console.log(response.data[1]);
+      setCoinPrice(response.data[1].trade_price);
     } catch (error) {
       console.error(error);
     }
   };
 
   const web3 = new Web3(window.ethereum);
-  // const web3_2 = new Web3("https://goerli.infura.io/v3/13bee00ed8d04b969173e4691bfe996c");
 
-  var token_c_address = "0xc369FA9F8392e1d633B9068C7fFd1C0b4BF752d5";
-  var nft_c_address = "0xDF0CD28266e8B5CB9D028310BCA549c0a0f26f40";
+  var token_c_address = "0x1886c7A70B90Eb41aeEecfC67B83423379e35e38";
+  var nft_c_address = "0xe5346c271535ff87A2C02DDdCA964A495bCAf3dF";
 
   var tokenContract = new web3.eth.Contract(tokenabi, token_c_address);
   var nftContract = new web3.eth.Contract(nftabi, nft_c_address);
@@ -48,7 +47,6 @@ function App() {
         method: "eth_requestAccounts",
       });
 
-      console.log(accounts[0]);
       setAccount(accounts[0]);
     } catch (error) {
       console.error(error);
@@ -91,86 +89,100 @@ function App() {
   };
 
   const buyToken = async (e) => {
-    e.preventDefault();
-    const data = new FormData(e.target);
-    // var input = web3.utils.numberToHex(Number(data.get("amount")));
+    try {
+      e.preventDefault();
+      const data = new FormData(e.target);
 
-    // await window.ethereum.request({
-    //   method : "eth_sendTransaction",
-    //   params : [{from : account, data : nftContract.methods.buyCoin(data.get("amount")).encodeABI()}]
-    // })
+      const input = Number((1 / coinPrice) * data.get("amount"));
 
-    // console.log(typeof Number(data.get("amount")));
-    console.log((1 / coinPrice) * Number(data.get("amount")));
+      // console.log(typeof input);
+      console.log(input);
 
-    var input = (1 / coinPrice) * Number(data.get("amount"));
+      var _value = web3.utils.toWei(input, "ether");
 
-    var _value = web3.utils.toWei("0.001", "ethers");
-    console.log(_value);
+      console.log(_value);
 
-    const response = await nftContract.methods
-      .buyCoin(data.get("amount"))
-      .send({
-        from: account,
-        value: web3.utils.toWei(input, "ethers"),
-      });
+      const response = await nftContract.methods
+        .buyCoin(data.get("amount"))
+        .send({
+          from: account,
+          value: _value,
+        });
 
-    console.log(response);
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const submitPresent = async (e) => {
-    e.preventDefault();
-    const data = new FormData(e.target);
+    try {
+      e.preventDefault();
+      const data = new FormData(e.target);
 
-    await nftContract.methods
-      .mintNFT1(data.get("number_1"), data.get("price_1"))
-      .send({
-        from: account,
-      });
+      await nftContract.methods
+        .mintNFT1(data.get("number_1"), data.get("price_1"))
+        .send({
+          from: account,
+        });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const showPresent = async (e) => {
-    e.preventDefault();
-    const data = new FormData(e.target);
+    try {
+      e.preventDefault();
+      const data = new FormData(e.target);
 
-    const result = await nftContract.methods
-      .PRESENT(data.get("who_2"), data.get("number_2"))
-      .call();
-    const result2 = await nftContract.methods
-      .getChargeRatio(data.get("who_2"), data.get("number_2"))
-      .call();
-    // console.log(result);
-    // console.log(result2);
-    setPresent(true);
-    setCurrentB(Number(result.currentB));
-    setFinalB(Number(result.finalB));
-    setRatio(Number(result2));
+      const response1 = await nftContract.methods
+        .PRESENT(data.get("who_2"), data.get("number_2"))
+        .call();
+      const response2 = await nftContract.methods
+        .getChargeRatio(data.get("who_2"), data.get("number_2"))
+        .call();
+
+      setPresent(true);
+      setCurrentB(Number(response1.currentB));
+      setFinalB(Number(response1.finalB));
+      setRatio(Number(response2));
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const chargePresent = async (e) => {
-    e.preventDefault();
-    const data = new FormData(e.target);
+    try {
+      e.preventDefault();
+      const data = new FormData(e.target);
 
-    await nftContract.methods
-      .chargeBalance(
-        data.get("who_3"),
-        data.get("number_3"),
-        data.get("price_3")
-      )
-      .send({
-        from: account,
-      });
+      await nftContract.methods
+        .chargeBalance(
+          data.get("who_3"),
+          data.get("number_3"),
+          data.get("price_3")
+        )
+        .send({
+          from: account,
+        });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const getTokenURI = async (e) => {
-    e.preventDefault();
-    const data = new FormData(e.target);
+    try {
+      e.preventDefault();
+      const data = new FormData(e.target);
 
-    const result = await nftContract.methods
-      .tokenURI(data.get("tokenID_4"))
-      .call();
+      const response = await nftContract.methods
+        .tokenURI(data.get("tokenID_4"))
+        .call();
 
-    setTokenURI(result);
+      setTokenURI(response);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -189,9 +201,7 @@ function App() {
               잔액 조회
             </button>
             {balance && (
-              <div className="text-main font-bold text-xl">
-                {balance} goerli
-              </div>
+              <div className="text-main font-bold text-xl">{balance} Matic</div>
             )}
           </div>
           <form onSubmit={buyToken} className="mt-4">
@@ -291,8 +301,8 @@ function App() {
             </button>
             {coinPrice && (
               <div className="flex flex-col mt-4 text-main font-bold text-xl">
-                <div>1 Matic : {coinPrice} K₩</div>
-                <div>1 K₩ : {1 / coinPrice} Matic</div>
+                <div>1 Ether : {coinPrice} K₩</div>
+                <div>1 K₩ : {1 / coinPrice} Ether</div>
               </div>
             )}
           </div>
