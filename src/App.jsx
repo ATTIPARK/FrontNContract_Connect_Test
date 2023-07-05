@@ -15,6 +15,7 @@ function App() {
   const [ratio, setRatio] = useState("");
   const [tokenURI, setTokenURI] = useState("");
   const [coinPrice, setCoinPrice] = useState();
+  const [whoCharge, setWhoCharge] = useState([]);
 
   const getCoinPrice = async () => {
     try {
@@ -98,15 +99,15 @@ function App() {
       // console.log(typeof input);
       console.log(input);
 
-      var _value = web3.utils.toWei(input, "ether");
+      // var _value = web3.utils.toWei(input, "ether");
 
-      console.log(_value);
+      // console.log(_value);
 
       const response = await nftContract.methods
         .buyCoin(data.get("amount"))
         .send({
           from: account,
-          value: _value,
+          // value: _value,
         });
 
       console.log(response);
@@ -121,7 +122,7 @@ function App() {
       const data = new FormData(e.target);
 
       await nftContract.methods
-        .mintNFT1(data.get("number_1"), data.get("price_1"))
+        .mintNFT(data.get("number_1"), data.get("price_1"))
         .send({
           from: account,
         });
@@ -176,7 +177,7 @@ function App() {
       const data = new FormData(e.target);
 
       const response = await nftContract.methods
-        .tokenURI(data.get("tokenID_4"))
+        .tokenURI(data.get("tokenID_5"))
         .call();
 
       setTokenURI(response);
@@ -184,6 +185,39 @@ function App() {
       console.error(error);
     }
   };
+
+  const getEvent = async (e) => {
+    try {
+      e.preventDefault();
+      const data = new FormData(e.target);
+
+      // const currentBlockNumber();
+
+      const response = await nftContract.getPastEvents("whoCharged", {
+        filter: { _to: data.get("who_4"), _num: Number(data.get("number_4")) },
+        fromBlock: web3.eth.getBlockNumber() - 10000,
+        toBlock: "latest",
+      });
+
+      console.log(response[0].returnValues._from);
+
+      const tempArray = response.map((v) => v.returnValues._from);
+
+      setWhoCharge(tempArray);
+
+      // for (var b = 0; b < response.length; b++) {
+      //   whoCharge[b] = response[b].returnValues._from;
+      // }
+
+      // for (var b = 0; b < response.length; b++) {
+      //   console.log(whoCharge[b]);
+      // }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  web3.eth.getBlockNumber().then(console.log);
 
   return (
     <div className="bg-blue-300 min-h-screen flex justify-center items-center">
@@ -283,11 +317,29 @@ function App() {
               돈 충전하기
             </button>
           </form>
+          <form onSubmit={getEvent} className="mt-4">
+            <input
+              className="border-2 border-black mr-4"
+              type="text"
+              name="who_4"
+              placeholder="누구의 선물"
+            ></input>
+            <input
+              className="border-2 border-black mr-4"
+              type="text"
+              name="number_4"
+              placeholder="몇번쨰 선물"
+            ></input>
+            <button className="ml-4 btn-style" type="submit">
+              누가 충전했는지 검색하기
+            </button>
+            <div>{whoCharge?.map((v) => v)}</div>
+          </form>
           <form onSubmit={getTokenURI} className="mt-4">
             <input
               className="border-2 border-black"
               type="text"
-              name="tokenID_4"
+              name="tokenID_5"
               placeholder="토큰 아이디"
             ></input>
             <button className="ml-4 btn-style" type="submit">
